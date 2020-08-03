@@ -2,7 +2,9 @@
 title: "PA1_template.Rmd"
 author: "Me"
 date: "7/31/2020"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 
@@ -12,10 +14,10 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r setup, include=FALSE}
+```{r}
 dataacti <- read.csv("activity.csv", header = TRUE)
 head(dataacti)
-
+echo=TRUE
 ```
 # Calculate the Number of Steps produced each day
 ```{r }
@@ -23,44 +25,59 @@ library(magrittr)
 library(dplyr)
 acti_date <- dataacti %>% select(date, steps) %>% group_by(date) %>% summarize(tsteps= sum(steps)) %>%na.omit()
 hist(acti_date$tsteps, xlab = "Total Day to Day Steps",main="Day to Day Histogram of Total Steps", breaks = 20)
+echo=TRUE
+
+```
+
+```{r}
+#Computing the Mean
+mean(acti_date$tsteps)
+echo=TRUE
 ```
 ```{r}
-#Computing the Mean and Median
-mean(acti_date$tsteps)
+#Computing the Median
 median(acti_date$tsteps)
+echo=TRUE
 ```
 #Time Series Chart for Average Steps
 ```{r}
 library(ggplot2)
 data_time <- dataacti%>% select(interval, steps) %>% na.omit() %>% group_by(interval) %>% summarize(tsteps= mean(steps)) 
 ggplot(data_time, aes(x=interval, y=tsteps))+ geom_line()
+echo=TRUE
 ```
 ```{r}
 # Time Interval with Maximum Steps
 data_time[which(data_time$tsteps== max(data_time$tsteps)),]
+echo=TRUE
 ```
 ```{r}
 #To Impute Missing Values
 misvals <- sum(is.na(data))
 misvals
+echo=TRUE
 ```
 ```{r}
-#Taking the mean as the Base for Filling Missing Values
+#Devise a strategy for filling in all of the missing values in the dataset. Iam going to apply the mean for that 5 -minute interval to replace all the missing values in the dataset. At the end, I will check if all the NAs have been replaced
+
 repl_mean <- function(x) replace(x, is.na(x), mean(x, na.rm = TRUE))
 mean_fill <- dataacti%>% group_by(interval) %>% mutate(steps= repl_mean(steps))
 head(mean_fill)
-
+```
+```{r}
 #Histogram Post Replacement with Means for Missing Data
 data_impute <- aggregate(mean_fill$steps, by=list(mean_fill$date), sum)
 
 names(data_impute)[1] ="date"
 names(data_impute)[2] ="totalsteps"
 head(data_impute,15)
-
+```
+```{r}
 
 #Summary Statistic for New Data
 summary(data_impute)
-
+```
+```{r}
 #Histogram for the New Data
 
 hist(data_impute$totalsteps, xlab = "Steps", ylab = "Frequency", main = "Total Daily Steps", breaks = 20)
@@ -72,6 +89,8 @@ oldmean <- mean(acti_date$tsteps, na.rm = TRUE)
 newmean <- mean(data_impute$totalsteps)
 # Old mean and New mean
 oldmean
+```
+```{r}
 newmean
 ```
 ```{r}
